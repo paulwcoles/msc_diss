@@ -23,8 +23,6 @@ proportional to (n_samples * iterations).
 
 from __future__ import print_function
 from time import time
-from os import listdir
-from os.path import isfile, join
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation
@@ -49,12 +47,12 @@ def print_top_words(model, feature_names, n_top_words):
 # footers and quoted replies, and common English words, words occurring in
 # only one document or in at least 95% of the documents are removed.
 
-# print("Loading dataset...")
-# t0 = time()
-# dataset = fetch_20newsgroups(shuffle=True, random_state=1,
-#                              remove=('headers', 'footers', 'quotes'))
-# data_samples = dataset.data[:n_samples]
-# print("done in %0.3fs." % (time() - t0))
+print("Loading dataset...")
+t0 = time()
+dataset = fetch_20newsgroups(shuffle=True, random_state=1,
+                             remove=('headers', 'footers', 'quotes'))
+data_samples = dataset.data[:n_samples]
+print("done in %0.3fs." % (time() - t0))
 
 # Use tf-idf features for NMF.
 print("Extracting tf-idf features for NMF...")
@@ -62,30 +60,16 @@ tfidf_vectorizer = TfidfVectorizer(max_df=0.95, min_df=2,
                                    max_features=n_features,
                                    stop_words='english')
 t0 = time()
-
-## PWC ## Make corpus
-corpus_dir = '/Users/paulwcoles/Google Drive/Masters/Diss/Local_Dissertation/code/data/docs_mgbtrain_small/'
-corpus_files = [corpus_dir + f for f in listdir(corpus_dir) if isfile(join(corpus_dir, f)) and f != '.DS_Store']
-corpus =[]
-corpus_index = 0
-
-for corpus_file in corpus_files:
-    with open(corpus_file, 'r') as in_file:
-        text = in_file.read().replace('\n', '')
-        corpus.insert(corpus_index, text)
-    corpus_index += 1
-
-
-tfidf = tfidf_vectorizer.fit_transform(corpus)
+tfidf = tfidf_vectorizer.fit_transform(data_samples)
 print("done in %0.3fs." % (time() - t0))
 
 # Use tf (raw term count) features for LDA.
 print("Extracting tf features for LDA...")
-tf_vectorizer = CountVectorizer(max_df=1, min_df=0,
+tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2,
                                 max_features=n_features,
                                 stop_words='english')
 t0 = time()
-tf = tf_vectorizer.fit_transform(corpus)
+tf = tf_vectorizer.fit_transform(data_samples)
 print("done in %0.3fs." % (time() - t0))
 
 # Fit the NMF model
@@ -101,7 +85,6 @@ print("\nTopics in NMF model:")
 tfidf_feature_names = tfidf_vectorizer.get_feature_names()
 print_top_words(nmf, tfidf_feature_names, n_top_words)
 
-# Fit the LDA model
 print("Fitting LDA models with tf features, "
       "n_samples=%d and n_features=%d..."
       % (n_samples, n_features))

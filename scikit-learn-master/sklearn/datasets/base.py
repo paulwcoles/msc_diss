@@ -84,6 +84,7 @@ def get_data_home(data_home=None):
 
     If the folder does not already exist, it is automatically created.
     """
+
     if data_home is None:
         data_home = environ.get('SCIKIT_LEARN_DATA',
                                 join('~', 'scikit_learn_data'))

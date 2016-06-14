@@ -27,3 +27,6 @@ if __name__ == "__main__":
     vectorizer = TfidfVectorizer(min_df=1)
     tf_idf_matrix = vectorizer.fit_transform(corpus.values(), y=None)
     print tf_idf_matrix
+# use SciPy,
+# compute dot product for matrix, print out top five for a given programme (sanity check)
+# test: pairwise dot product, find nearest 

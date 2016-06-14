@@ -151,7 +151,7 @@ def strip_newsgroup_footer(text):
         return text
 
 
-def fetch_20newsgroups(data_home=None, subset='train', categories=None,
+def fetch_mgb(data_home=None, subset='train', categories=None,
                        shuffle=True, random_state=42,
                        remove=(),
                        download_if_missing=True):
@@ -199,9 +199,10 @@ def fetch_20newsgroups(data_home=None, subset='train', categories=None,
         'headers' follows an exact standard; the other filters are not always
         correct.
     """
+
     data_home = get_data_home(data_home=data_home)
     cache_path = _pkl_filepath(data_home, CACHE_NAME)
-    twenty_home = os.path.join(data_home, "mgb_home")
+    twenty_home = os.path.join(data_home, "20news_home")
     cache = None
     if os.path.exists(cache_path):
         try:
