@@ -11,6 +11,7 @@
 ###
 
 from bs4 import BeautifulSoup
+import sys
 import urllib2
 import re
 import time
@@ -43,7 +44,7 @@ def get_secondary_links(primary_links):
                 if link != '/news/video_and_audio/video' and full_link not in topbar_links:
                     topbar_links.append(full_link)
                     count += 1
-                    print "Got %i secondary links..." % count
+                    # print "Got %i secondary links..." % count
         # Primary page may contain zero secondary links
         except:
             continue
@@ -59,6 +60,8 @@ def make_story_soups(topbar_links):
     story_soups = {}
     stories_crawled = []
     total_homepages = len(topbar_links)
+    failed_stories = 0
+    out_of_window = 0
     for index, homepage in enumerate(topbar_links):
         print "\nFinding stories from homepage %i of %i: \t %s" % (index + 1, total_homepages, homepage)
         homepage_html = urllib2.urlopen(homepage)
@@ -68,18 +71,29 @@ def make_story_soups(topbar_links):
             # Of all links on page, make soup only for the story pages
             if "/news/" in long_url and re.search(r"\d{8}", long_url) is not None \
             and long_url not in stories_crawled:
+                # try:
+                story_html = urllib2.urlopen(long_url)
+                story_soup = BeautifulSoup(story_html)
                 try:
-                    story_html = urllib2.urlopen(long_url)
-                    story_soup = BeautifulSoup(story_html)
-                    published = int(story_soup.find('div', class_ = 'date date--v2')['data-seconds'])
+                    try:
+                        published = int(story_soup.find('div', class_ = 'date date--v2')['data-seconds'])
+                    except:
+                        published = int(story_soup.find('div', class_ = 'date date--v1')['data-seconds'])
                     if published >= window_start and published <= window_end:
-                        print "Making soup instance for story: \t %s" % long_url
                         story_soups[long_url] = story_soup
                         stories_crawled.append(long_url)
+                        print "Story success: \t" + long_url
+                    else:
+                        "Story out of window: \t" + long_url
+                        out_of_window += 1
                 except:
+                    print "Failed story: \t" + long_url
+                    failed_stories += 1
                     continue
         # Avoid scraping BBC server too frequently
         time.sleep(0.1)
+    print "\nfailed stories:\t %i" % failed_stories
+    print "out of window :\t %i" % out_of_window
     return story_soups
 
 
@@ -90,8 +104,14 @@ def write_story(url, story_soup, out_directory):
     story_id = (url.split('/'))[-1].split('-')[-1]  # Integer ID from the URL
     # Get body text
     try:
-        tag = story_soup.find("div", {"class":"story-body__inner"})
-        p_tags = tag.find_all('p')
+        try:
+            tag = story_soup.find("div", {"class":"story-body__inner"})
+            p_tags = tag.find_all('p')
+            print "Archiving text page: \t" + url
+        except:
+            tag = story_soup.find("div", {"class":"text-wrapper"})
+            p_tags = tag.find_all('p')
+            print "Archiving video page: \t" + url
         body = ''
         for i in p_tags:
             if i.string:
@@ -105,14 +125,31 @@ def write_story(url, story_soup, out_directory):
         with open(cat_directory + story_id + '.txt', 'w') as f:
             f.write(body)
     except:
+        print "No text found for: \t" + url
         pass
 
 if __name__ == "__main__":
-    # Set story time window for this run: from 06:00:00 yesterday to 05:59:59 today
+    # Set story time window for this run
+    time_mode = sys.argv[1]
     localtime = time.localtime(time.time())
-    t = localtime[0:3] + (5, 59, 59) + localtime[6:]
-    window_end = int(time.mktime(t))
-    window_start = window_end - 86399
+    # Absolute window, early
+    if time_mode == 'early':
+        t_early = localtime[0:3] + (5, 59, 59) + localtime[6:]
+        window_end = int(time.mktime(t_early))
+        window_start = window_end - 86399
+    # Absolute window, late
+    elif time_mode == 'late':
+        t_late = localtime[0:3] + (17, 59, 59) + localtime[6:]
+        window_end = int(time.mktime(t_late))
+        window_start = window_end_late - 86399
+    # Relative window
+    elif time_mode == 'rel':
+        window_end = int(time.mktime(localtime))
+        window_start = window_end - 86399
+    else:
+        print 'Invalid time mode.'
+        sys.exit(1)
+
 
     # Get today's navigation bar links
     topbar_links = []
@@ -121,19 +158,16 @@ if __name__ == "__main__":
     print "Got %i primary links." % len(primary_links)
     print "\nGetting secondary links... "
     get_secondary_links(primary_links)
-
     # Store BeautifulSoup instances for each story page
-    # topbar_links = ['http://www.bbc.co.uk/news/technology'] ## TEST ONLY
     story_soups = make_story_soups(topbar_links)
     print "\n"
 
     # Make a directory for today's output
     year, month, day = time.strftime("%Y"), time.strftime("%m"), time.strftime("%d")
-    out_directory = './' + year + '/' + month + '/' + day + '/'
+    out_directory = './' + year + '/' + month + '/' + day + '/' + time_mode + '/'
     if not os.path.exists(out_directory):
         os.makedirs(out_directory)
 
     # Use locally-stored instances to find article text and write to file
     for url, story_soup in story_soups.iteritems():
-        print "Archiving story: \t %s" % str(url)
         write_story(url, story_soup, out_directory)
