@@ -1,0 +1,14 @@
+28_07_2016_14_23_01
+-------------------- PARAMETERS --------------------Train:				../data/today/split/train/
+Test:				../data/today/split/test/
+
+Mode:				tfidf
+Tiling Window:				3
+
+max_df:				0.95
+min_df:				2
+norm:				l2
+sublinear_tf:				False
+
+--------------------  RESULTS  --------------------
+20160706060000today_parsed.txt			0.62519685039420160705060000today_parsed.txt			0.65517241379320160711060000today_parsed.txt			0.64157119476320160701060000today_parsed.txt			0.63862928348920160715060000today_parsed.txt			0.60100166944920160704060000today_parsed.txt			0.65143824027120160712060000today_parsed.txt			0.62521008403420160713060000today_parsed.txt			0.66034755134320160714060000today_parsed.txt			0.64992389649920160718060000today_parsed.txt			0.60944881889820160708060000today_parsed.txt			0.6494345718920160707060000today_parsed.txt			0.672926447574

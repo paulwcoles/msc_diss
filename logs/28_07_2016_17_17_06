@@ -1,0 +1,14 @@
+28_07_2016_17_17_06
+-------------------- PARAMETERS --------------------Train:				../data/today/split/train/
+Test:				../data/today/split/temp/
+Mode:				lda
+Tiling Window:				3
+
+max_df:				0.95
+min_df:				2
+norm:				l2
+sublinear_tf:				False
+
+--------------------  RESULTS  --------------------
+
+20160705060000today_parsed.txt			0.538461538462

@@ -1,0 +1,25 @@
+29_07_2016_12_59_49
+-------------------- PARAMETERS --------------------Train:				../data/today/split/train/
+Test:				../data/today/split/test/
+Mode:				uniform
+Tiling Window:				2
+
+max_df:				0.95
+min_df:				2
+norm:				l2
+sublinear_tf:				False
+
+--------------------  RESULTS  --------------------
+
+20160706060000today_parsed.txt			0.543307086614
+20160705060000today_parsed.txt			0.570689655172
+20160711060000today_parsed.txt			0.53682487725
+20160701060000today_parsed.txt			0.51246105919
+20160715060000today_parsed.txt			0.530884808013
+20160704060000today_parsed.txt			0.499153976311
+20160712060000today_parsed.txt			0.532773109244
+20160713060000today_parsed.txt			0.505529225908
+20160714060000today_parsed.txt			0.499238964992
+20160718060000today_parsed.txt			0.516535433071
+20160708060000today_parsed.txt			0.547657512116
+20160707060000today_parsed.txt			0.510172143975

@@ -1,0 +1,24 @@
+window the raw text for doc2vec             DONE
+mode assignment from LDA: assign each word its most likely topic, feature vector is count of each topic in paragraph
+Reverse parse       DONE
+Experiment on your parameters, all methods
+What is average boundaries per doc?         DONE: 91 boundaries per doc
+
+TODAY
+set parameters correctly (Default values for all package params)
+make option: n boundaries vs. threshold     DONE
+Baseline segmentation: place boundaries uniformly   DONE
+graph this vs gold vs tfidf
+get code working on dice
+train on other train set
+
+
+
+
+Experiment design: match TopicTiling baseline / beat with Doc2Vec? --> same dataset?
+Parameters: per literature (recommended settings in TopicTiling)? Doc2Vec
+
+
+Email Melvyn
+Email Barca
+

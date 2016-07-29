@@ -1,0 +1,12 @@
+29_07_2016_11_22_48
+-------------------- PARAMETERS --------------------Train:				../data/today/split/train/
+Test:				../data/today/split/temp/
+Mode:				tfidf
+Tiling Window:				3
+
+max_df:				0.95
+min_df:				2
+norm:				l2
+sublinear_tf:				False
+
+--------------------  RESULTS  --------------------

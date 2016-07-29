@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 ###
-# BBC NEWS WEB SCRAPER
-# Retrieves news stories published in a 24-hour window, stores them locally as
-# plain text by metadata category.
+#	University of Edinburgh, School of Informatics
+#	Dissertation for the MSc Degree
 #
-# Author: Paul W. Coles, University of Edinburgh
-#
+#	BBC NEWS WEB SCRAPER
+# 	Author: Paul W. Coles
+#   Retrieves news stories published in a 24-hour window, stores them locally as
+#   plain text by metadata category.
 ###
 
 from bs4 import BeautifulSoup
@@ -60,40 +61,64 @@ def make_story_soups(topbar_links):
     story_soups = {}
     stories_crawled = []
     total_homepages = len(topbar_links)
-    failed_stories = 0
-    out_of_window = 0
     for index, homepage in enumerate(topbar_links):
         print "\nFinding stories from homepage %i of %i: \t %s" % (index + 1, total_homepages, homepage)
+        stories_found = 0
+        failed_stories = 0
+        out_of_window = 0
+        not_a_story = 0
         homepage_html = urllib2.urlopen(homepage)
         homepage_soup = BeautifulSoup(homepage_html)
-        for a in homepage_soup.find_all('a', href=True):
+        homepage_links = homepage_soup.find_all('a', href=True)
+        links_count = len(homepage_links)
+        print "%i links to check..." % links_count
+        for index, a in enumerate(homepage_links):
+            # print "Homepage: %s \t Checking link %i of %i..." % (homepage, index + 1, links_count)
             long_url = make_long_url(a['href'])
             # Of all links on page, make soup only for the story pages
             if "/news/" in long_url and re.search(r"\d{8}", long_url) is not None \
-            and long_url not in stories_crawled:
-                # try:
-                story_html = urllib2.urlopen(long_url)
-                story_soup = BeautifulSoup(story_html)
+            and "/live/" not in long_url and long_url not in stories_crawled:
                 try:
+                    story_html = urllib2.urlopen(long_url)
+                    story_soup = BeautifulSoup(story_html)
                     try:
-                        published = int(story_soup.find('div', class_ = 'date date--v2')['data-seconds'])
+                        v1 = story_soup.find(['p','div'], class_ = 'date date--v1')
+                        v2 = story_soup.find('div', class_ = 'date date--v2')
+                        if v1 is not None:
+                            date_v1 = v1['data-seconds']
+                            published = int(date_v1)
+                        elif v2 is not None:
+                            date_v2 = v2['data-seconds']
+                            published = int(date_v2)
                     except:
-                        published = int(story_soup.find('div', class_ = 'date date--v1')['data-seconds'])
+                        print "No date found"
+                        continue
+                except:
+                    print "Can't make soup."
+                    continue
+
+                try:
                     if published >= window_start and published <= window_end:
                         story_soups[long_url] = story_soup
                         stories_crawled.append(long_url)
-                        print "Story success: \t" + long_url
+                        stories_found += 1
+                        # print "Story success: \t" + long_url
                     else:
-                        "Story out of window: \t" + long_url
+                        # print "Story out of window: \t" + long_url
                         out_of_window += 1
                 except:
-                    print "Failed story: \t" + long_url
+                    # print "Failed story: \t" + long_url
                     failed_stories += 1
                     continue
+            else:
+                not_a_story += 1
+        print "\nSummary for homepage:\t %s" % homepage
+        print "%i stories found\n%i stories out of window\n%i links are not stories\
+        \n%i stories failed\n\n" % (stories_found, out_of_window, not_a_story, failed_stories)
+
+
         # Avoid scraping BBC server too frequently
         time.sleep(0.1)
-    print "\nfailed stories:\t %i" % failed_stories
-    print "out of window :\t %i" % out_of_window
     return story_soups
 
 
@@ -130,7 +155,12 @@ def write_story(url, story_soup, out_directory):
 
 if __name__ == "__main__":
     # Set story time window for this run
-    time_mode = sys.argv[1]
+    if len(sys.argv) == 2:
+        time_mode = sys.argv[1]
+    else:
+        print "Usage: bbc_scrape.py [early, late, rel]"
+        sys.exit(1)
+
     localtime = time.localtime(time.time())
     # Absolute window, early
     if time_mode == 'early':
@@ -141,7 +171,7 @@ if __name__ == "__main__":
     elif time_mode == 'late':
         t_late = localtime[0:3] + (17, 59, 59) + localtime[6:]
         window_end = int(time.mktime(t_late))
-        window_start = window_end_late - 86399
+        window_start = window_end - 86399
     # Relative window
     elif time_mode == 'rel':
         window_end = int(time.mktime(localtime))
@@ -150,7 +180,6 @@ if __name__ == "__main__":
         print 'Invalid time mode.'
         sys.exit(1)
 
-
     # Get today's navigation bar links
     topbar_links = []
     print "Getting primary links... "
@@ -158,13 +187,17 @@ if __name__ == "__main__":
     print "Got %i primary links." % len(primary_links)
     print "\nGetting secondary links... "
     get_secondary_links(primary_links)
+
+    # Test
+    # topbar_links = ['http://www.bbc.co.uk/news/world/']
+
     # Store BeautifulSoup instances for each story page
     story_soups = make_story_soups(topbar_links)
     print "\n"
 
     # Make a directory for today's output
     year, month, day = time.strftime("%Y"), time.strftime("%m"), time.strftime("%d")
-    out_directory = './' + year + '/' + month + '/' + day + '/' + time_mode + '/'
+    out_directory = '../data/' + year + '/' + month + '/' + day + '/' + time_mode + '/'
     if not os.path.exists(out_directory):
         os.makedirs(out_directory)
 
