@@ -5,7 +5,7 @@ Experiment on your parameters, all methods
 What is average boundaries per doc?         DONE: 91 boundaries per doc
 
 TODAY
-set parameters correctly (Default values for all package params)
+set parameters correctly (Default values for all package params) 
 make option: n boundaries vs. threshold     DONE
 Baseline segmentation: place boundaries uniformly   DONE
 graph this vs gold vs tfidf
